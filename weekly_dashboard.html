@@ -2596,7 +2596,7 @@ function renderTable(){
       <td>${r[2]||'- '}</td>
       <td class="m ${colorAHT(r[3])}">${r[3]?r[3].toFixed(2):'- '}${ahtT}</td>
       <td class="m ${colorWims(r[4])}">${r[4]?r[4].toFixed(2):'- '}${wimsT}</td>
-      <td class="m ${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=CHC2C[w]&&CHC2C[w][r[0]];return v&&v>0&&v<20?(v>=5?'good':'bad'):'''}())}">${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=CHC2C[w]&&CHC2C[w][r[0]];return v&&v>0&&v<20?v.toFixed(2):'-'}())}</td>
+      <td class="m">${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=CHC2C[w]&&CHC2C[w][r[0]];return v&&v>0&&v<20?v.toFixed(2):'-'}())}</td>
       <td class="m ${colorQS(r[5])}">${r[5]?(r[5]*100).toFixed(1)+'%':'- '}${qsT}</td>
       <td class="m ${colorDef(r[6])}">${r[6]?(r[6]*100).toFixed(1)+'%':'- '}${defT}</td>
       <td class="fb" title="${r[8]||''}">${r[8]||'- '}</td>
