@@ -2490,6 +2490,7 @@ function cleanOutliers(data){
   return data.map(r=>{
     const c=[...r];
     if(c[4]>20)c[4]=0; // cap extreme WIMs/HR
+    if(c[5]>20)c[5]=0; // cap extreme WIMs/HR CH/C2C
     if(c[3]>30)c[3]=0; // cap extreme AHT
     return c;
   }).filter(r=>{
