@@ -2496,7 +2496,6 @@ function pct(v){return v>=1?v*100:v*100} // already decimal
 function colorAHT(v){return v===0?'':v<=7?'good':v<=10?'avg':'bad'}
 function colorWims(v){return v===0?'':v>=4?'good':v>=2.5?'avg':'bad'}
 function colorQS(v){return v===0?'':v>=0.96?'good':v>=0.90?'avg':'bad'}
-function colorCB(v){return v===0?'':v>=5?'good':'bad'}
 function colorDef(v){return v===0?'':v<=0.05?'good':v<=0.10?'avg':'bad'}
 
 // --- KPI Cards ---
@@ -2557,7 +2556,6 @@ function trendArrow(curVal,prevVal,lowerBetter){
   return `<span class="trend" style="color:${good?'#22c55e':'#ef4444'}">${up?'':''}</span>`;
 }
 
-function getCB(login,week){var w=week==='all'?activeWeeks()[activeWeeks().length-1]:week;var v=CHC2C[w]&&CHC2C[w][login];return(v&&v>0&&v<20)?v:0}
 function renderTable(){
   const isAll=curWeek==='all';
   const wks=activeWeeks();
