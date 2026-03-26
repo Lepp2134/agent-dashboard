@@ -110,6 +110,19 @@ tr:hover td{background:rgba(59,130,246,.04)}
 </style>
 </head>
 <body>
+<div id="authGate" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#0f172a;z-index:9999;display:flex;align-items:center;justify-content:center">
+<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:40px;text-align:center;max-width:360px;width:90%">
+<div style="font-size:20px;font-weight:700;color:#f1f5f9;margin-bottom:6px">Agent Performance Dashboard</div>
+<div style="font-size:12px;color:#64748b;margin-bottom:24px">Enter password to continue</div>
+<input type="password" id="authPw" placeholder="Password" style="width:100%;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#f1f5f9;font-size:14px;outline:none;margin-bottom:12px;box-sizing:border-box" onkeydown="if(event.key==='Enter')checkAuth()">
+<button onclick="checkAuth()" style="width:100%;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Enter</button>
+<div id="authErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none">Incorrect password</div>
+</div>
+</div>
+<script>
+function checkAuth(){var p=document.getElementById('authPw').value;if(p==='DSS-PHX10'){document.getElementById('authGate').remove();sessionStorage.setItem('authed','1')}else{document.getElementById('authErr').style.display='block'}}
+if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContentLoaded',function(){var g=document.getElementById('authGate');if(g)g.remove()})}
+</script>
 <div class="header">
 <div><h1>Agent Performance Dashboard</h1><div class="sub">Multi-Week Comparison</div></div>
 <div class="view-toggle"><button class="view-btn active" onclick="switchView('agents')">Agents</button><button class="view-btn" onclick="switchView('trends')">Trends</button><button class="view-btn" onclick="switchView('agent')">Agent</button></div>
