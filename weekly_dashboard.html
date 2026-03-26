@@ -128,6 +128,7 @@ tr:hover td{background:rgba(59,130,246,.04)}
 </div>
 <div class="trends-panel" id="trendsPanel">
 <div class="trend-controls">
+<select class="inp" id="trendMgrF"><option value="">All Managers</option></select>
 <select class="inp" id="trendShiftF"><option value="">All Shifts</option><option>S1</option><option>S2</option><option>S3</option></select>
 <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:5px"><input type="checkbox" id="trendByShift"> Break down by shift</label>
 </div>
@@ -2634,9 +2635,9 @@ function switchView(view){
 function renderTrends(){
   var wks=activeWeeks();
   if(wks.length<2){document.getElementById('trendGrid').innerHTML='<div class="no-data" style="grid-column:1/-1">Need at least 2 weeks of data</div>';document.getElementById('trendSummary').innerHTML='';return;}
-  var shiftFilter=document.getElementById('trendShiftF').value;
+  var shiftFilter=document.getElementById('trendShiftF').value;var allD=wks.flatMap(function(w){return getData(w)});var mgrs=[].concat(Array.from(new Set(allD.map(function(r){return r[2]}).filter(Boolean)))).sort();var mgrSel=document.getElementById('trendMgrF');var curMgr=mgrSel.value;mgrSel.innerHTML='<option value="">All Managers</option>'+mgrs.map(function(m){return'<option'+(m===curMgr?' selected':'')+'>'+m+'</option>'}).join('');
   var byShift=document.getElementById('trendByShift').checked;
-  var filterD=function(d){return shiftFilter?d.filter(function(r){return r[1]===shiftFilter}):d};
+  var mgrFilter=document.getElementById('trendMgrF').value;var filterD=function(d){var f=d;if(shiftFilter)f=f.filter(function(r){return r[1]===shiftFilter});if(mgrFilter)f=f.filter(function(r){return r[2]===mgrFilter});return f};
   var weeklyAvg=function(idx){return wks.map(function(w){var d=filterD(getData(w));return avg(d,idx)})};
   var ahtV=weeklyAvg(3),wimsV=weeklyAvg(4),qsV=weeklyAvg(5),defV=weeklyAvg(6);
   var dl=function(a){var d=a[a.length-1]-a[0];var p=a[0]?((d/a[0])*100).toFixed(1):'0';return{d:d,p:p}};
@@ -2786,7 +2787,7 @@ function renderAgentTrends(){
 document.getElementById('search').addEventListener('input',render);
 document.getElementById('shiftF').addEventListener('change',render);
 document.getElementById('mgrF').addEventListener('change',render);
-document.getElementById('trendShiftF').addEventListener('change',function(){if(document.getElementById('trendsPanel').classList.contains('visible'))renderTrends()});
+document.getElementById('trendShiftF').addEventListener('change',function(){if(document.getElementById('trendsPanel').classList.contains('visible'))renderTrends()});document.getElementById('trendMgrF').addEventListener('change',function(){if(document.getElementById('trendsPanel').classList.contains('visible'))renderTrends()});
 document.getElementById('trendByShift').addEventListener('change',function(){if(document.getElementById('trendsPanel').classList.contains('visible'))renderTrends()});
 document.getElementById('agentSelect').addEventListener('change',renderAgentTrends);
 
