@@ -2587,7 +2587,7 @@ function renderTable(){
     return sortDir*((va||0)-(vb||0));
   });
   // Header
-  const cols=['Login','Shift','Manager','AHT','WIMs/HR','WIMs/HR CH','Quality Score','ATR Defect %','Feedback'];
+  const cols=['Login','Shift','Manager','AHT','WIMs/HR','WIMs/HR CB','Quality Score','ATR Defect %','Feedback'];
   const mhCols=[3,4,5,6,7];
   document.getElementById('tHead').innerHTML='<tr>'+cols.map((c,i)=>`<th class="${mhCols.includes(i)?'mh':''} ${sortCol===i?'sorted':''}" onclick="setSort(${i})">${c}<span class="sa">${sortCol===i?(sortDir===1?'\u25B2':'\u25BC'):'\u21C5'}</span></th>`).join('')+'</tr>';
   if(sorted.length===0){
