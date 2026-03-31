@@ -2829,8 +2829,8 @@ function renderTable(){
       <td class="m">${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=CHC2C[w]&&CHC2C[w][r[0]];return v&&v>0&&v<20?v.toFixed(2):'-'}())}</td>
       <td class="m ${colorQS(r[5])}">${r[5]?(r[5]*100).toFixed(1)+'%':'- '}${qsT}</td>
       <td class="m ${colorDef(r[6])}">${r[6]?(r[6]*100).toFixed(1)+'%':'- '}${defT}</td>
-      <td class="m ${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=PRECALL[w]&&PRECALL[w][r[0]];return v&&v>1?'bad':v&&v>0?'good':'''}())}">${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=PRECALL[w]&&PRECALL[w][r[0]];return v&&v>0?v.toFixed(2):'-'}())}</td>
-      <td class="m ${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=POSTCALL[w]&&POSTCALL[w][r[0]];return v&&v>1?'bad':v&&v>0?'good':'''}())}">${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=POSTCALL[w]&&POSTCALL[w][r[0]];return v&&v>0?v.toFixed(2):'-'}())}</td>
+      <td class="m">${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=PRECALL[w]&&PRECALL[w][r[0]];return v&&v>0?v.toFixed(2):'-'}())}</td>
+      <td class="m">${(function(){var w=curWeek==='all'?activeWeeks()[activeWeeks().length-1]:curWeek;var v=POSTCALL[w]&&POSTCALL[w][r[0]];return v&&v>0?v.toFixed(2):'-'}())}</td>
       <td class="fb" title="${r[8]||''}">${r[8]||'- '}</td>
     </tr>`}).join('');
 }
