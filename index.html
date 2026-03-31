@@ -2882,7 +2882,7 @@ function renderTrends(){
     if(ch.goal!=null)allV.push(ch.goal);
     allV=allV.filter(function(v){return v>0});
     var mnV=Math.min.apply(null,allV)*0.9,mxV=Math.max.apply(null,allV)*1.1;
-    var rng=mxV-mnV||1;
+    if(ch.pct&&mxV>1)mxV=1;var rng=mxV-mnV||1;
     var xF=function(i){return pL+(i/(wks.length-1))*iW};
     var yF=function(v){return pT+iH-(((v-mnV)/rng)*iH)};
     var svg='<svg class="trend-svg" viewBox="0 0 '+W+' '+H+'">';
@@ -2970,7 +2970,7 @@ function renderAgentTrends(){
     if(ch.goal!=null)allV.push(ch.goal);
     if(allV.length===0){html+='<div class="trend-card"><div class="trend-card-title">'+ch.title+'</div><div class="no-data" style="padding:20px">No data</div></div>';return}
     var mnV=Math.min.apply(null,allV)*0.85,mxV=Math.max.apply(null,allV)*1.15;
-    var rng=mxV-mnV||1;
+    if(ch.pct&&mxV>1)mxV=1;var rng=mxV-mnV||1;
     var xF=function(i){return wLabels.length===1?pL+iW/2:pL+(i/(wLabels.length-1))*iW};
     var yF=function(v){return pT+iH-(((v-mnV)/rng)*iH)};
     var svg='<svg class="trend-svg" viewBox="0 0 '+W+' '+H+'">';
