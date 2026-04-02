@@ -105,6 +105,7 @@ if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContent
 <div class="header">
 <h1>Shipment Failure Dashboard</h1>
 <div class="sub">Missort & RTO Analysis - Deduplicated</div>
+<div class="view-toggle"><button class="view-btn active" onclick="switchView('main')">Overview</button><button class="view-btn" onclick="switchView('trends')">Trends</button><button class="view-btn" onclick="switchView('anomalies')">Anomalies</button></div>
 </div>
 <div class="container">
 <div class="main-panel" id="mainPanel"><div class="kpi-row" id="kpis"></div>
