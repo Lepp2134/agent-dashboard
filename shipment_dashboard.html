@@ -17648,7 +17648,7 @@ function switchView(v){
   else{mp.classList.remove('hidden');tp.classList.remove('visible');ap.classList.remove('visible');}
 }
 
-function renderTrends(){
+function renderTrends(){try{
   var fd=getFiltered();
   var colors=['#3b82f6','#a855f7','#22c55e','#eab308','#ef4444','#06b6d4','#f97316','#ec4899','#14b8a6','#8b5cf6'];
 
@@ -17770,7 +17770,7 @@ function renderTrends(){
   document.getElementById('trendGrid').innerHTML=html;
 }
 
-function renderAnomalies(){
+function renderAnomalies(){try{
   var fd=getFiltered();
   if(!fd.length){document.getElementById('anomaliesPanel').innerHTML='<div style="padding:40px;text-align:center;color:#64748b">No data for current filters</div>';return}
 
