@@ -90,8 +90,8 @@ tr:hover td{background:rgba(59,130,246,.04)}
 <button onclick="checkAuth()" style="width:100%;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Enter</button>
 <div id="authErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none">Incorrect password</div>
 </div></div>
-<div class="extra-panel" id="tp"><div class="trend-grid" id="trendGrid"></div></div>
-<div class="extra-panel" id="ap"></div>
+<div class="extra-panel" id="tp"><div class="view-toggle"><button class="view-btn" onclick="doSwitch('main')">Overview</button><button class="view-btn" onclick="doSwitch('trends')">Trends</button><button class="view-btn" onclick="doSwitch('anomalies')">Anomalies</button></div><div class="trend-grid" id="trendGrid"></div></div>
+<div class="extra-panel" id="ap"><div class="view-toggle"><button class="view-btn" onclick="doSwitch('main')">Overview</button><button class="view-btn" onclick="doSwitch('trends')">Trends</button><button class="view-btn" onclick="doSwitch('anomalies')">Anomalies</button></div><div id="apContent"></div></div>
 </div>
 <script>
 function checkAuth(){var p=document.getElementById('authPw').value;if(p==='TESS'){document.getElementById('authGate').remove();sessionStorage.setItem('authed','1')}else{document.getElementById('authErr').style.display='block'}}
@@ -124,8 +124,8 @@ if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContent
 <div class="tbl-hdr"><span>Shipment Details</span><span class="cnt" id="rowCnt">0</span></div>
 <div class="tbl-scroll"><table><thead id="tHead"></thead><tbody id="tBody"></tbody></table></div>
 </div></div>
-<div class="extra-panel" id="tp"><div class="trend-grid" id="trendGrid"></div></div>
-<div class="extra-panel" id="ap"></div>
+<div class="extra-panel" id="tp"><div class="view-toggle"><button class="view-btn" onclick="doSwitch('main')">Overview</button><button class="view-btn" onclick="doSwitch('trends')">Trends</button><button class="view-btn" onclick="doSwitch('anomalies')">Anomalies</button></div><div class="trend-grid" id="trendGrid"></div></div>
+<div class="extra-panel" id="ap"><div class="view-toggle"><button class="view-btn" onclick="doSwitch('main')">Overview</button><button class="view-btn" onclick="doSwitch('trends')">Trends</button><button class="view-btn" onclick="doSwitch('anomalies')">Anomalies</button></div><div id="apContent"></div></div>
 </div>
 <script>
 // DATA: [fw, shipmentId, missortOrigin, missortMethod, missortCarrier, rtoMethod, rtoCarrier, flag, date]
@@ -17636,8 +17636,8 @@ function render(){
 document.getElementById('fSearch').addEventListener('input',render);
 
 function doSwitch(v){
-  document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active')});
-  if(event&&event.target)event.target.classList.add('active');
+  document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active');if(b.textContent==='Overview'&&v==='main')b.classList.add('active');if(b.textContent==='Trends'&&v==='trends')b.classList.add('active');if(b.textContent==='Anomalies'&&v==='anomalies')b.classList.add('active')});
+  
   document.getElementById('mp').className=v==='main'?'main-panel':'main-panel hidden';
   document.getElementById('tp').className=v==='trends'?'extra-panel visible':'extra-panel';
   document.getElementById('ap').className=v==='anomalies'?'extra-panel visible':'extra-panel';
@@ -17686,7 +17686,7 @@ function doTrends(){
 
 function doAnomalies(){
   var fd=getFiltered();
-  if(!fd.length){document.getElementById('ap').innerHTML='<div style="padding:40px;color:#64748b;text-align:center">No data</div>';return}
+  if(!fd.length){document.getElementById('apContent').innerHTML='<div style="padding:40px;color:#64748b;text-align:center">No data</div>';return}
   function st(a){var n=a.length;if(!n)return{m:0,s:0};var m=a.reduce(function(x,y){return x+y},0)/n;var v=a.reduce(function(x,y){return x+(y-m)*(y-m)},0)/n;return{m:m,s:Math.sqrt(v)}}
   function cls(z){if(z>=3)return{c:'crit',l:'CRITICAL',co:'#ef4444'};if(z>=2)return{c:'warn',l:'WARNING',co:'#eab308'};return null}
   var oM={};fd.forEach(function(r){if(!r[8]||!r[2])return;var m=r[8].substring(0,7);if(!oM[r[2]])oM[r[2]]={};oM[r[2]][m]=(oM[r[2]][m]||0)+1});
@@ -17715,7 +17715,7 @@ function doAnomalies(){
   h+='<div class="anom-section"><div class="anom-title" style="color:#ef4444">Week-over-Week Spikes</div>'+rows(wA,false)+'</div>';
   h+='<div class="anom-section"><div class="anom-title" style="color:#eab308">Origin Station Anomalies</div>'+rows(oA,true)+'</div>';
   h+='<div class="anom-section"><div class="anom-title" style="color:#a855f7">Carrier Anomalies</div>'+rows(cA,true)+'</div>';
-  document.getElementById('ap').innerHTML=h;
+  document.getElementById('apContent').innerHTML=h;
 }
 render();
 </script>
