@@ -43,6 +43,28 @@ tr:hover td{background:rgba(59,130,246,.04)}
 .tag.miss{background:rgba(239,68,68,.15);color:#f87171}
 .tag.both{background:rgba(168,85,247,.15);color:#c084fc}
 @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}.controls{flex-direction:column}}
+.view-toggle{display:flex;gap:2px;background:#1e293b;border-radius:10px;padding:3px;border:1px solid #334155;margin-top:10px}
+.view-btn{padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;color:#94a3b8;border:none;background:transparent;font-weight:600}
+.view-btn.active{background:#3b82f6;color:#fff}
+.view-btn:hover:not(.active){color:#f1f5f9;background:rgba(59,130,246,.12)}
+.trends-panel{display:none}
+.trends-panel.visible{display:block}
+.main-panel.hidden{display:none}
+.trend-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.trend-card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px}
+.trend-card.full{grid-column:1/-1}
+.trend-card-title{font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.trend-svg{width:100%;overflow:visible}
+.trend-line{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.trend-dot{stroke-width:2}
+.trend-area{opacity:.1}
+.tgrid-line{stroke:#334155;stroke-width:1}
+.tlabel{fill:#64748b;font-size:10px;font-family:'Segoe UI',system-ui,sans-serif}
+.tval{fill:#e2e8f0;font-size:8px;font-weight:600;font-family:'Segoe UI',system-ui,sans-serif}
+.trend-legend{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.trend-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#94a3b8}
+.trend-legend-dot{width:8px;height:8px;border-radius:50%}
+@media(max-width:900px){.trend-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -55,6 +77,8 @@ tr:hover td{background:rgba(59,130,246,.04)}
 <div id="authErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none">Incorrect password</div>
 </div>
 </div>
+<div class="trends-panel" id="trendsPanel"><div class="trend-grid" id="trendGrid"></div></div>
+</div>
 <script>
 function checkAuth(){var p=document.getElementById('authPw').value;if(p==='TESS'){document.getElementById('authGate').remove();sessionStorage.setItem('authed','1')}else{document.getElementById('authErr').style.display='block'}}
 if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContentLoaded',function(){var g=document.getElementById('authGate');if(g)g.remove()})}
@@ -64,7 +88,7 @@ if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContent
 <div class="sub">Missort & RTO Analysis - Deduplicated</div>
 </div>
 <div class="container">
-<div class="kpi-row" id="kpis"></div>
+<div class="main-panel" id="mainPanel"><div class="kpi-row" id="kpis"></div>
 <div class="controls">
 <select class="inp" id="fDate"><option value="">All Dates</option><option value="1m">Last 1 Month</option><option value="3m">Last 3 Months</option></select>
 <select class="inp" id="fOrigin"><option value="">All Origins</option></select>
@@ -17593,6 +17617,136 @@ function render(){
 
 ['fDate','fOrigin','fCarrier','fMethod','fFlag'].forEach(function(id){document.getElementById(id).addEventListener('change',render)});
 document.getElementById('fSearch').addEventListener('input',render);
+
+function switchView(v){
+  document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active')});
+  event.target.classList.add('active');
+  var mp=document.getElementById('mainPanel'),tp=document.getElementById('trendsPanel');
+  if(v==='trends'){mp.classList.add('hidden');tp.classList.add('visible');renderTrends();}
+  else{mp.classList.remove('hidden');tp.classList.remove('visible');}
+}
+
+function renderTrends(){
+  var fd=getFiltered();
+  var colors=['#3b82f6','#a855f7','#22c55e','#eab308','#ef4444','#06b6d4','#f97316','#ec4899','#14b8a6','#8b5cf6'];
+
+  // Group by week (YYYY-WW)
+  var byWeek={};
+  fd.forEach(function(r){
+    if(!r[8])return;
+    var d=new Date(r[8]);
+    var jan1=new Date(d.getFullYear(),0,1);
+    var wk=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+    var key=d.getFullYear()+'-W'+(wk<10?'0':'')+wk;
+    byWeek[key]=(byWeek[key]||0)+1;
+  });
+  var weeks=Object.keys(byWeek).sort();
+  var weekVals=weeks.map(function(w){return byWeek[w]});
+
+  // Group by month
+  var byMonth={};
+  fd.forEach(function(r){if(r[8])byMonth[r[8].substring(0,7)]=(byMonth[r[8].substring(0,7)]||0)+1});
+  var months=Object.keys(byMonth).sort();
+  var monthVals=months.map(function(m){return byMonth[m]});
+
+  // Top origins over time (by month)
+  var originByMonth={};
+  fd.forEach(function(r){
+    if(!r[8]||!r[2])return;
+    var m=r[8].substring(0,7);
+    if(!originByMonth[r[2]])originByMonth[r[2]]={};
+    originByMonth[r[2]][m]=(originByMonth[r[2]][m]||0)+1;
+  });
+  var topOrigins=Object.keys(originByMonth).map(function(o){return[o,fd.filter(function(r){return r[2]===o}).length]}).sort(function(a,b){return b[1]-a[1]}).slice(0,5).map(function(x){return x[0]});
+
+  // Carrier over time (by month)
+  var carrierByMonth={};
+  fd.forEach(function(r){
+    if(!r[8])return;
+    var m=r[8].substring(0,7);
+    [r[4],r[6]].forEach(function(c){
+      if(!c)return;
+      if(!carrierByMonth[c])carrierByMonth[c]={};
+      carrierByMonth[c][m]=(carrierByMonth[c][m]||0)+1;
+    });
+  });
+  var allCarriers=Object.keys(carrierByMonth).sort();
+
+  // SVG line chart builder
+  function lineChart(labels,series,W,H,fmtY){
+    var pT=15,pR=20,pB=28,pL=50,iW=W-pL-pR,iH=H-pT-pB;
+    var allV=[];series.forEach(function(s){allV=allV.concat(s.vals)});
+    if(!allV.length)return'<div style="padding:40px;text-align:center;color:#64748b">No data</div>';
+    var mn=Math.min.apply(null,allV)*0.9,mx=Math.max.apply(null,allV)*1.1;
+    if(mn===mx){mn=mn*0.5;mx=mx*1.5}
+    var rng=mx-mn||1;
+    var xF=function(i){return labels.length===1?pL+iW/2:pL+(i/(labels.length-1))*iW};
+    var yF=function(v){return pT+iH-(((v-mn)/rng)*iH)};
+    var svg='<svg class="trend-svg" viewBox="0 0 '+W+' '+H+'">';
+    for(var g=0;g<=4;g++){var gv=mn+(rng/4)*g;var gy=yF(gv);svg+='<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+'" class="tgrid-line"/>';svg+='<text x="'+(pL-4)+'" y="'+(gy+3)+'" text-anchor="end" class="tlabel">'+(fmtY?fmtY(gv):Math.round(gv))+'</text>'}
+    var step=Math.max(1,Math.floor(labels.length/12));
+    labels.forEach(function(l,i){if(i%step===0||i===labels.length-1)svg+='<text x="'+xF(i)+'" y="'+(H-4)+'" text-anchor="middle" class="tlabel">'+l+'</text>'});
+    series.forEach(function(s){
+      var pts=s.vals.map(function(v,i){return xF(i)+','+yF(v)}).join(' ');
+      var apts=pts+' '+xF(s.vals.length-1)+','+yF(mn)+' '+xF(0)+','+yF(mn);
+      svg+='<polygon points="'+apts+'" fill="'+s.color+'" class="trend-area"/>';
+      svg+='<polyline points="'+pts+'" stroke="'+s.color+'" class="trend-line"/>';
+      if(s.vals.length<=20)s.vals.forEach(function(v,i){svg+='<circle cx="'+xF(i)+'" cy="'+yF(v)+'" r="3" fill="#0f172a" stroke="'+s.color+'" class="trend-dot"/>'});
+    });
+    svg+='</svg>';
+    return svg;
+  }
+
+  function legend(series){
+    return'<div class="trend-legend">'+series.map(function(s){return'<div class="trend-legend-item"><div class="trend-legend-dot" style="background:'+s.color+'"></div>'+s.name+'</div>'}).join('')+'</div>';
+  }
+
+  var html='';
+
+  // 1. Total failures by month (full width)
+  html+='<div class="trend-card full"><div class="trend-card-title">Total Failures by Month</div>';
+  html+=lineChart(months,[{name:'Failures',vals:monthVals,color:'#3b82f6'}],720,180);
+  html+='</div>';
+
+  // 2. Total failures by week
+  html+='<div class="trend-card full"><div class="trend-card-title">Total Failures by Week</div>';
+  html+=lineChart(weeks,[{name:'Failures',vals:weekVals,color:'#a855f7'}],720,180);
+  html+='</div>';
+
+  // 3. Top 5 origins over time
+  html+='<div class="trend-card full"><div class="trend-card-title">Top 5 Origins - Monthly Trend</div>';
+  var originSeries=topOrigins.map(function(o,i){return{name:o,color:colors[i],vals:months.map(function(m){return(originByMonth[o]&&originByMonth[o][m])||0})}});
+  html+=lineChart(months,originSeries,720,200);
+  html+=legend(originSeries);
+  html+='</div>';
+
+  // 4. Carriers over time
+  html+='<div class="trend-card full"><div class="trend-card-title">Carriers - Monthly Trend</div>';
+  var carrierSeries=allCarriers.map(function(c,i){return{name:c,color:colors[i%colors.length],vals:months.map(function(m){return(carrierByMonth[c]&&carrierByMonth[c][m])||0})}});
+  html+=lineChart(months,carrierSeries,720,200);
+  html+=legend(carrierSeries);
+  html+='</div>';
+
+  // 5. Missort vs Both flag over time
+  var flagByMonth={};
+  fd.forEach(function(r){
+    if(!r[8])return;
+    var m=r[8].substring(0,7);
+    var f=r[7].indexOf('both')>=0?'Both':'Missort Only';
+    if(!flagByMonth[f])flagByMonth[f]={};
+    flagByMonth[f][m]=(flagByMonth[f][m]||0)+1;
+  });
+  html+='<div class="trend-card full"><div class="trend-card-title">Failure Type - Monthly Trend</div>';
+  var flagSeries=[
+    {name:'Both Missort + RTO',color:'#ef4444',vals:months.map(function(m){return(flagByMonth['Both']&&flagByMonth['Both'][m])||0})},
+    {name:'Missort Only',color:'#eab308',vals:months.map(function(m){return(flagByMonth['Missort Only']&&flagByMonth['Missort Only'][m])||0})}
+  ];
+  html+=lineChart(months,flagSeries,720,180);
+  html+=legend(flagSeries);
+  html+='</div>';
+
+  document.getElementById('trendGrid').innerHTML=html;
+}
 render();
 </script>
 </body>
