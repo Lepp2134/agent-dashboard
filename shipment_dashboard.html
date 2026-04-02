@@ -65,6 +65,25 @@ tr:hover td{background:rgba(59,130,246,.04)}
 .trend-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#94a3b8}
 .trend-legend-dot{width:8px;height:8px;border-radius:50%}
 @media(max-width:900px){.trend-grid{grid-template-columns:1fr}}
+.anomalies-panel.visible{display:block!important}
+.anomaly-section{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:16px}
+.anomaly-title{font-size:14px;font-weight:600;margin-bottom:12px}
+.anomaly-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(51,65,85,.3);font-size:13px}
+.anomaly-row:last-child{border-bottom:none}
+.anomaly-name{min-width:100px;font-weight:600}
+.anomaly-bar{flex:1;height:8px;background:#1e293b;border-radius:4px;overflow:hidden;border:1px solid #334155}
+.anomaly-fill{height:100%;border-radius:4px}
+.anomaly-val{min-width:60px;text-align:right;font-variant-numeric:tabular-nums}
+.anomaly-delta{min-width:80px;text-align:right;font-weight:600;font-size:12px}
+.anomaly-hot{color:#ef4444}.anomaly-warm{color:#eab308}.anomaly-ok{color:#22c55e}
+.anomaly-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
+.anomaly-badge.critical{background:rgba(239,68,68,.2);color:#f87171}
+.anomaly-badge.warning{background:rgba(234,179,8,.2);color:#fbbf24}
+.anomaly-badge.normal{background:rgba(34,197,94,.15);color:#4ade80}
+.anomaly-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.anomaly-stat{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px;text-align:center}
+.anomaly-stat-lbl{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.anomaly-stat-val{font-size:24px;font-weight:700}
 </style>
 </head>
 <body>
@@ -77,7 +96,7 @@ tr:hover td{background:rgba(59,130,246,.04)}
 <div id="authErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none">Incorrect password</div>
 </div>
 </div>
-<div class="trends-panel" id="trendsPanel"><div class="trend-grid" id="trendGrid"></div></div>
+<div class="anomalies-panel" id="anomaliesPanel" style="display:none"></div><div class="trends-panel" id="trendsPanel"><div class="trend-grid" id="trendGrid"></div></div>
 </div>
 <script>
 function checkAuth(){var p=document.getElementById('authPw').value;if(p==='TESS'){document.getElementById('authGate').remove();sessionStorage.setItem('authed','1')}else{document.getElementById('authErr').style.display='block'}}
@@ -17621,9 +17640,9 @@ document.getElementById('fSearch').addEventListener('input',render);
 function switchView(v){
   document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active')});
   event.target.classList.add('active');
-  var mp=document.getElementById('mainPanel'),tp=document.getElementById('trendsPanel');
-  if(v==='trends'){mp.classList.add('hidden');tp.classList.add('visible');renderTrends();}
-  else{mp.classList.remove('hidden');tp.classList.remove('visible');}
+  var mp=document.getElementById('mainPanel'),tp=document.getElementById('trendsPanel'),ap=document.getElementById('anomaliesPanel');
+  ap.classList.remove('visible');if(v==='trends'){mp.classList.add('hidden');tp.classList.add('visible');renderTrends();}else if(v==='anomalies'){mp.classList.add('hidden');tp.classList.remove('visible');ap.classList.add('visible');renderAnomalies();}
+  else{mp.classList.remove('hidden');tp.classList.remove('visible');ap.classList.remove('visible');}
 }
 
 function renderTrends(){
@@ -17746,6 +17765,102 @@ function renderTrends(){
   html+='</div>';
 
   document.getElementById('trendGrid').innerHTML=html;
+}
+
+function renderAnomalies(){
+  var fd=getFiltered();
+  if(!fd.length){document.getElementById('anomaliesPanel').innerHTML='<div style="padding:40px;text-align:center;color:#64748b">No data for current filters</div>';return}
+
+  // Helper: compute mean and stddev
+  function stats(arr){var n=arr.length;if(!n)return{mean:0,std:0};var m=arr.reduce(function(a,b){return a+b},0)/n;var v=arr.reduce(function(a,b){return a+(b-m)*(b-m)},0)/n;return{mean:m,std:Math.sqrt(v)}}
+
+  // Helper: classify z-score
+  function classify(z){if(z>=3)return{cls:'critical',label:'CRITICAL',color:'#ef4444'};if(z>=2)return{cls:'warning',label:'WARNING',color:'#eab308'};return{cls:'normal',label:'Normal',color:'#22c55e'}}
+
+  // 1. Origins by month - find months where an origin spikes
+  var originMonth={};
+  fd.forEach(function(r){
+    if(!r[8]||!r[2])return;
+    var m=r[8].substring(0,7);var k=r[2];
+    if(!originMonth[k])originMonth[k]={};
+    originMonth[k][m]=(originMonth[k][m]||0)+1;
+  });
+
+  var originAnomalies=[];
+  Object.keys(originMonth).forEach(function(origin){
+    var months=Object.keys(originMonth[origin]).sort();
+    var vals=months.map(function(m){return originMonth[origin][m]});
+    var s=stats(vals);
+    if(s.std===0)return;
+    vals.forEach(function(v,i){
+      var z=(v-s.mean)/s.std;
+      if(z>=2)originAnomalies.push({name:origin,period:months[i],count:v,avg:s.mean,z:z,type:classify(z)});
+    });
+  });
+  originAnomalies.sort(function(a,b){return b.z-a.z});
+
+  // 2. Weekly totals - find weeks with unusual spikes
+  var weekTotals={};
+  fd.forEach(function(r){
+    if(!r[8])return;
+    var d=new Date(r[8]);var jan1=new Date(d.getFullYear(),0,1);
+    var wk=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+    var key=d.getFullYear()+'-W'+(wk<10?'0':'')+wk;
+    weekTotals[key]=(weekTotals[key]||0)+1;
+  });
+  var wks=Object.keys(weekTotals).sort();
+  var wkVals=wks.map(function(w){return weekTotals[w]});
+  var wkStats=stats(wkVals);
+  var weekAnomalies=[];
+  wkVals.forEach(function(v,i){
+    if(wkStats.std===0)return;
+    var z=(v-wkStats.mean)/wkStats.std;
+    if(z>=1.5)weekAnomalies.push({name:wks[i],count:v,avg:wkStats.mean,z:z,type:classify(z)});
+  });
+  weekAnomalies.sort(function(a,b){return b.z-a.z});
+
+  // 3. Carrier anomalies by month
+  var carrierMonth={};
+  fd.forEach(function(r){
+    if(!r[8])return;var m=r[8].substring(0,7);
+    [r[4],r[6]].forEach(function(c){if(!c)return;if(!carrierMonth[c])carrierMonth[c]={};carrierMonth[c][m]=(carrierMonth[c][m]||0)+1});
+  });
+  var carrierAnomalies=[];
+  Object.keys(carrierMonth).forEach(function(carrier){
+    var months=Object.keys(carrierMonth[carrier]).sort();
+    var vals=months.map(function(m){return carrierMonth[carrier][m]});
+    var s=stats(vals);if(s.std===0)return;
+    vals.forEach(function(v,i){var z=(v-s.mean)/s.std;if(z>=2)carrierAnomalies.push({name:carrier,period:months[i],count:v,avg:s.mean,z:z,type:classify(z)})});
+  });
+  carrierAnomalies.sort(function(a,b){return b.z-a.z});
+
+  // Summary counts
+  var critCount=originAnomalies.concat(weekAnomalies,carrierAnomalies).filter(function(a){return a.type.cls==='critical'}).length;
+  var warnCount=originAnomalies.concat(weekAnomalies,carrierAnomalies).filter(function(a){return a.type.cls==='warning'}).length;
+  var totalAnom=originAnomalies.length+weekAnomalies.length+carrierAnomalies.length;
+
+  function anomalyRows(items,showPeriod){
+    if(!items.length)return'<div style="padding:12px;color:#64748b;font-size:12px">No anomalies detected</div>';
+    var maxCount=Math.max.apply(null,items.map(function(a){return a.count}));
+    return items.slice(0,15).map(function(a){
+      return'<div class="anomaly-row"><div class="anomaly-name">'+a.name+'</div>'+(showPeriod?'<div style="min-width:70px;color:#94a3b8;font-size:12px">'+a.period+'</div>':'')+
+        '<div class="anomaly-bar"><div class="anomaly-fill" style="width:'+(a.count/maxCount*100)+'%;background:'+a.type.color+'"></div></div>'+
+        '<div class="anomaly-val">'+a.count+'</div>'+
+        '<div class="anomaly-delta">avg '+Math.round(a.avg)+'</div>'+
+        '<div style="min-width:70px;text-align:right"><span class="anomaly-badge '+a.type.cls+'">'+a.type.label+' ('+a.z.toFixed(1)+'x)</span></div></div>';
+    }).join('');
+  }
+
+  var html='<div class="anomaly-summary">'+
+    '<div class="anomaly-stat"><div class="anomaly-stat-lbl">Total Anomalies</div><div class="anomaly-stat-val">'+totalAnom+'</div></div>'+
+    '<div class="anomaly-stat" style="border-color:#ef4444"><div class="anomaly-stat-lbl" style="color:#ef4444">Critical (3x+ std dev)</div><div class="anomaly-stat-val anomaly-hot">'+critCount+'</div></div>'+
+    '<div class="anomaly-stat" style="border-color:#eab308"><div class="anomaly-stat-lbl" style="color:#eab308">Warning (2x+ std dev)</div><div class="anomaly-stat-val anomaly-warm">'+warnCount+'</div></div></div>';
+
+  html+='<div class="anomaly-section"><div class="anomaly-title" style="color:#ef4444">Week-over-Week Spikes (1.5x+ std dev)</div>'+anomalyRows(weekAnomalies,false)+'</div>';
+  html+='<div class="anomaly-section"><div class="anomaly-title" style="color:#eab308">Origin Station Anomalies (2x+ std dev by month)</div>'+anomalyRows(originAnomalies,true)+'</div>';
+  html+='<div class="anomaly-section"><div class="anomaly-title" style="color:#a855f7">Carrier Anomalies (2x+ std dev by month)</div>'+anomalyRows(carrierAnomalies,true)+'</div>';
+
+  document.getElementById('anomaliesPanel').innerHTML=html;
 }
 render();
 </script>
