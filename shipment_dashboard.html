@@ -65,7 +65,7 @@ tr:hover td{background:rgba(59,130,246,.04)}
 .trend-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#94a3b8}
 .trend-legend-dot{width:8px;height:8px;border-radius:50%}
 @media(max-width:900px){.trend-grid{grid-template-columns:1fr}}
-.anomalies-panel.visible{display:block!important}
+.anomalies-panel{display:none}.anomalies-panel.visible{display:block!important}
 .anomaly-section{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:16px}
 .anomaly-title{font-size:14px;font-weight:600;margin-bottom:12px}
 .anomaly-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(51,65,85,.3);font-size:13px}
@@ -130,7 +130,7 @@ if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContent
 <div class="tbl-scroll"><table><thead id="tHead"></thead><tbody id="tBody"></tbody></table></div>
 </div>
 <div class="trends-panel" id="trendsPanel"><div class="trend-grid" id="trendGrid"></div></div>
-<div class="anomalies-panel" id="anomaliesPanel" style="display:none"></div>
+<div class="anomalies-panel" id="anomaliesPanel"></div>
 </div>
 <script>
 // DATA: [fw, shipmentId, missortOrigin, missortMethod, missortCarrier, rtoMethod, rtoCarrier, flag, date]
