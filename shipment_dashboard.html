@@ -56,7 +56,7 @@ tr:hover td{background:rgba(59,130,246,.04)}
 </div>
 </div>
 <script>
-function checkAuth(){var p=document.getElementById('authPw').value;if(p==='DSS-PHX10'){document.getElementById('authGate').remove();sessionStorage.setItem('authed','1')}else{document.getElementById('authErr').style.display='block'}}
+function checkAuth(){var p=document.getElementById('authPw').value;if(p==='TESS'){document.getElementById('authGate').remove();sessionStorage.setItem('authed','1')}else{document.getElementById('authErr').style.display='block'}}
 if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContentLoaded',function(){var g=document.getElementById('authGate');if(g)g.remove()})}
 </script>
 <div class="header">
