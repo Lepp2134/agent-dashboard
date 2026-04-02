@@ -97,7 +97,7 @@ tr:hover td{background:rgba(59,130,246,.04)}
 function checkAuth(){var p=document.getElementById('authPw').value;if(p==='TESS'){document.getElementById('authGate').remove();sessionStorage.setItem('authed','1')}else{document.getElementById('authErr').style.display='block'}}
 if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContentLoaded',function(){var g=document.getElementById('authGate');if(g)g.remove()})}
 </script>
-<div class="header">
+<div class="header" id="mainHeader">
 <h1>Shipment Failure Dashboard</h1>
 <div class="sub">Missort & RTO Analysis - Deduplicated</div>
 <div class="view-toggle"><button class="view-btn active" onclick="doSwitch('main')">Overview</button><button class="view-btn" onclick="doSwitch('trends')">Trends</button><button class="view-btn" onclick="doSwitch('anomalies')">Anomalies</button></div>
@@ -17638,7 +17638,7 @@ document.getElementById('fSearch').addEventListener('input',render);
 function doSwitch(v){
   document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active');if(b.textContent==='Overview'&&v==='main')b.classList.add('active');if(b.textContent==='Trends'&&v==='trends')b.classList.add('active');if(b.textContent==='Anomalies'&&v==='anomalies')b.classList.add('active')});
   
-  document.getElementById('mp').className=v==='main'?'main-panel':'main-panel hidden';
+  document.getElementById('mainHeader').style.display=v==='main'?'':'none';document.getElementById('mp').className=v==='main'?'main-panel':'main-panel hidden';
   document.getElementById('tp').className=v==='trends'?'extra-panel visible':'extra-panel';
   document.getElementById('ap').className=v==='anomalies'?'extra-panel visible':'extra-panel';
   if(v==='trends')doTrends();
