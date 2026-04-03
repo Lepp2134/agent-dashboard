@@ -105,7 +105,7 @@ if(sessionStorage.getItem('authed')==='1'){document.addEventListener('DOMContent
 <div class="container">
 <div class="main-panel" id="mp"><div class="kpi-row" id="kpis"></div>
 <div class="controls">
-<select class="inp" id="fDate"><option value="">All Dates</option><option value="1m">Last 1 Month</option><option value="3m">Last 3 Months</option></select>
+<input type="date" class="inp" id="fDateFrom" title="From date"> <span style="color:#64748b;font-size:12px">to</span> <input type="date" class="inp" id="fDateTo" title="To date">
 <select class="inp" id="fOrigin"><option value="">All Origins</option></select>
 <select class="inp" id="fCarrier"><option value="">All Carriers</option></select>
 <select class="inp" id="fMethod"><option value="">All Ship Methods</option></select>
@@ -17567,18 +17567,15 @@ CARRIERS.forEach(function(c){document.getElementById('fCarrier').innerHTML+='<op
 METHODS.forEach(function(m){document.getElementById('fMethod').innerHTML+='<option>'+m+'</option>'});
 
 function getFiltered(){
-  var dp=document.getElementById('fDate').value;
+  var dfrom=document.getElementById('fDateFrom').value;var dto=document.getElementById('fDateTo').value;
   var fo=document.getElementById('fOrigin').value;
   var fc=document.getElementById('fCarrier').value;
   var fm=document.getElementById('fMethod').value;
   var ff=document.getElementById('fFlag').value;
   var fs=document.getElementById('fSearch').value.toLowerCase();
-  var now=new Date('2026-04-02');
-  var cutoff='';
-  if(dp==='1m')cutoff='2026-03-02';
-  if(dp==='3m')cutoff='2026-01-02';
+  
   return DATA.filter(function(r){
-    if(cutoff&&r[8]<cutoff)return false;
+    if(dfrom&&r[8]<dfrom)return false;if(dto&&r[8]>dto)return false;
     if(fo&&r[2]!==fo)return false;
     if(fc&&r[4]!==fc&&r[6]!==fc)return false;
     if(fm&&r[3]!==fm&&r[5]!==fm)return false;
@@ -17632,7 +17629,7 @@ function render(){
   }).join('');
 }
 
-['fDate','fOrigin','fCarrier','fMethod','fFlag'].forEach(function(id){document.getElementById(id).addEventListener('change',render)});
+['fDateFrom','fDateTo','fOrigin','fCarrier','fMethod','fFlag'].forEach(function(id){document.getElementById(id).addEventListener('change',render)});
 document.getElementById('fSearch').addEventListener('input',render);
 
 function doSwitch(v){
