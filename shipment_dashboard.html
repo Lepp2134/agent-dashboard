@@ -16038,12 +16038,12 @@ function render(){
   barChart(document.getElementById('chartWeek'),wArr,wArr.length?Math.max.apply(null,wArr.map(function(w){return w[1]})):1);
 
   // Table
-  document.getElementById('tHead').innerHTML='<tr><th>Shipment ID</th><th>Origin</th><th>Missort Method</th><th>Missort Carrier</th><th>RTO Method</th><th>RTO Carrier</th><th>Flag</th><th>Date</th><th>Missort Reason</th><th>RTO Reason</th></tr>';
+  document.getElementById('tHead').innerHTML='<tr><th>Shipment ID</th><th>Origin</th><th>Missort Method</th><th>Missort Reason</th><th>Missort Carrier</th><th>RTO Method</th><th>RTO Reason</th><th>RTO Carrier</th><th>Flag</th><th>Date</th></tr>';
   var show=fd.slice(0,500);
   document.getElementById('rowCnt').textContent=fd.length+' records'+(fd.length>500?' (showing 500)':'');
   document.getElementById('tBody').innerHTML=show.map(function(r){
     var tagCls=r[7].indexOf('both')>=0?'both':'miss';
-    return'<tr><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td>'+r[5]+'</td><td>'+r[6]+'</td><td><span class="tag '+tagCls+'">'+r[7]+'</span></td><td>'+r[8]+'</td><td>'+r[9]+'</td><td>'+r[10]+'</td></tr>';
+    return'<tr><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[9]+'</td><td>'+r[4]+'</td><td>'+r[5]+'</td><td>'+r[10]+'</td><td>'+r[6]+'</td><td><span class="tag '+tagCls+'">'+r[7]+'</span></td><td>'+r[8]+'</td></tr>';
   }).join('');
 }
 
